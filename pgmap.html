@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>PG Finder – With Translation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Bengali", "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #f0f4f8 0%, #e0eaf5 100%);
+      overflow: hidden;
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+      position: relative;
+    }
+
+    /* ============ LANGUAGE TOGGLE ============ */
+    .language-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      gap: 8px;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .lang-btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgb(255, 255, 255);
+      color: #2563eb;
+    }
+
+    .lang-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .lang-btn.active {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: rgb(255, 255, 255);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ============ CONTROLS BAR ============ */
+    .controls-bar {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      gap: 12px;
+      padding: 16px 24px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      animation: slideDown 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    }
+
+    .controls-bar input {
+      height: 44px;
+      border-radius: 12px;
+      border: 2px solid #e5e7eb;
+      padding: 0 16px;
+      font-size: 15px;
+      outline: none;
+      background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+      color: #ffffff;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      font-weight: 500;
+      width: 150px;
+    }
+
+    .controls-bar input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 4px rgba(115, 148, 219, 0.15);
+      transform: translateY(-2px) scale(1.05);
+      background: white;
+    }
+
+    .controls-bar button {
+      height: 44px;
+      padding: 0 28px;
+      border-radius: 12px;
+      border: none;
+      font-size: 15px;
+      outline: none;
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: rgb(255, 255, 255);
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .controls-bar button:hover {
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 16px 40px rgba(37, 99, 235, 0.5);
+    }
+
+    /* ============ PG PANEL ============ */
+    #pg-panel {
+      position: absolute;
+      top: 85px;
+      left: 20px;
+      width: 340px;
+      max-height: 70vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      z-index: 999;
+      padding: 20px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      animation: slideInLeft 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    #pg-panel h3 {
+      margin: 0 0 14px 0;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #1e3a8a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .filter-section {
+      background: linear-gradient(135deg, #f0f4f8 0%, #e8ecf1 100%);
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(37, 99, 235, 0.1);
+    }
+
+    .filter-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2563eb;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .filter-options {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: white;
+      color: #6b7280;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .filter-btn:hover {
+      border-color: #2563eb;
+      color: #2563eb;
+      background: rgba(37, 99, 235, 0.05);
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .compare-toggle {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid #e5e7eb;
+      background: white;
+      color: #2563eb;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .compare-toggle:hover {
+      border-color: #2563eb;
+      background: rgba(37, 99, 235, 0.05);
+    }
+
+    .compare-toggle.active {
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .pg-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pg-card {
+      padding: 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #eef2ff 0%, #f3f4f6 100%);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease-out forwards;
+      opacity: 0;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .pg-card:hover {
+      transform: translateY(-10px) scale(1.04);
+      box-shadow: 0 20px 50px rgba(37, 99, 235, 0.25);
+      border-color: #2563eb;
+      background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
+    }
+
+    .pg-card-name {
+      font-weight: 700;
+      font-size: 15px;
+      color: #1f2937;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      line-height: 1.3;
+    }
+
+    .pg-card-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+      color: white;
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 14px;
+      margin-right: 10px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      flex-shrink: 0;
+    }
+
+    .pg-card-info {
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .distance-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #1e40af;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      margin-right: 8px;
+      margin-bottom: 6px;
+    }
+
+    .duration-tag {
+      display: inline-block;
+      background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+      color: #991b1b;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    /* ============ CHATBOT ============ */
+    .chatbot-toggle {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+      transition: all 0.4s ease;
+      z-index: 900;
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .chatbot-toggle:hover {
+      transform: scale(1.15);
+      box-shadow: 0 15px 40px rgba(124, 58, 237, 0.5);
+    }
+
+    .chatbot-container {
+      position: absolute;
+      bottom: 90px;
+      right: 20px;
+      width: 380px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1001;
+      animation: slideInUp 0.5s ease-out;
+    }
+
+    @keyframes slideInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chatbot-container.active {
+      display: flex;
+    }
+
+    .chatbot-header {
+      padding: 16px;
+      background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chatbot-header h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .close-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-msg {
+      display: flex;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .user-msg {
+      justify-content: flex-end;
+    }
+
+    .bot-msg {
+      justify-content: flex-start;
+    }
+
+    .chat-bubble {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 13px;
+      line-height: 1.5;
+      word-wrap: break-word;
+    }
+
+    .user-msg .chat-bubble {
+      background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+      color: white;
+    }
+
+    .bot-msg .chat-bubble {
+      background: #f3f4f6;
+      color: #1f2937;
+    }
+
+    .chat-input-box {
+      padding: 14px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+    }
+
+    .chat-input-box input {
+      flex: 1;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 20px;
+      outline: none;
+      font-size: 13px;
+      background: white;
+    }
+
+    .chat-input-box input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .chat-input-box button {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .chat-input-box button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);
+    }
+
+    .college-marker {
+      background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+      color: white;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      box-shadow: 0 10px 28px rgba(220, 38, 38, 0.35);
+      border: 3px solid white;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pg-marker {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      box-shadow: 0 10px 28px rgba(16, 185, 129, 0.35);
+      border: 3px solid white;
+      cursor: pointer;
+      user-select: none;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 10px 28px rgba(16, 185, 129, 0.35); }
+      50% { box-shadow: 0 15px 40px rgba(16, 185, 129, 0.5); }
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+      border: none;
+    }
+
+    .pg-detail-popup {
+      padding: 20px;
+      color: #1f2937;
+    }
+
+    .pg-detail-popup h2 {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #2563eb;
+      border-bottom: 3px solid #2563eb;
+      padding-bottom: 10px;
+    }
+
+    .detail-item {
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-label {
+      font-weight: 700;
+      color: #2563eb;
+      min-width: 80px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .detail-value {
+      color: #4b5563;
+      font-weight: 500;
+    }
+
+    .amenity-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+      color: #1e40af;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    #pg-panel::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    #pg-panel::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, #2563eb 0%, #1e40af 100%);
+      border-radius: 10px;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: #d1d5db;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 768px) {
+      .controls-bar { width: 90%; flex-direction: column; gap: 10px; padding: 14px 16px; }
+      .controls-bar input, .controls-bar button { width: 100%; height: 42px; }
+      #pg-panel { width: 90%; left: 5%; top: auto; bottom: 20px; max-height: 40vh; }
+      .chatbot-container { width: 90%; height: 400px; right: 5%; }
+      .language-toggle { top: 10px; right: 10px; gap: 6px; padding: 8px; }
+      .lang-btn { padding: 6px 12px; font-size: 12px; }
+    }
+
+    @media (max-width: 480px) {
+      #pg-panel { width: 95%; left: 2.5%; }
+      .chatbot-container { width: 95%; right: 2.5%; }
+      .language-toggle { top: 8px; right: 8px; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- LANGUAGE TOGGLE -->
+  <div class="language-toggle">
+    <select id="language-select" onchange="setLanguage(this.value)" style="padding: 8px 14px; border-radius: 8px; border: 1px solid #e5e7eb; font-size: 13px; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); color: white; outline: none;">
+      <option value="en">English 🇬🇧</option>
+      <option value="bn">বাংলা 🇧🇩</option>
+      <option value="hi">हिन्दी 🇮🇳</option>
+      <option value="es">Español 🇪🇸</option>
+      <option value="fr">Français 🇫🇷</option>
+    </select>
+  </div>
+
+  <div class="controls-bar">
+    <input type="number" id="radius" placeholder="🔍 Radius (km)" value="5" min="1" max="20">
+    <button onclick="searchPGs()" id="search-btn">🔍 Search PGs</button>
+  </div>
+
+  <div id="pg-panel">
+    <h3 id="panel-title">📍 Nearby PGs</h3>
+
+    <div class="filter-section">
+      <div class="filter-title" id="filter-label">🔽 Type Filter</div>
+      <div class="filter-options">
+        <button class="filter-btn active" onclick="filterByType('All')" id="all-filter">All</button>
+        <button class="filter-btn" onclick="filterByType('Boys')" id="boys-filter">Boys</button>
+        <button class="filter-btn" onclick="filterByType('Girls')" id="girls-filter">Girls</button>
+        <button class="filter-btn" onclick="filterByType('Mixed')" id="mixed-filter">Mixed</button>
+      </div>
+    </div>
+
+    <button class="compare-toggle" onclick="toggleCompareMode()" id="compare-btn">⚖️ Compare PGs</button>
+
+    <div id="pg-list" class="pg-list-container">
+      <div class="loading"><span id="loading-text">Loading PGs...</span></div>
+    </div>
+  </div>
+
+  <button id="chatbot-toggle" class="chatbot-toggle" onclick="toggleChatbot()">💬</button>
+
+  <div id="chatbot-container" class="chatbot-container">
+    <div class="chatbot-header">
+      <h3 id="ai-title">🤖 PG AI Assistant</h3>
+      <button class="close-btn" onclick="toggleChatbot()">✕</button>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+      <div class="chat-msg bot-msg">
+        <div class="chat-bubble" id="welcome-msg">👋 Hi! Ask me about PG rent, safety, food, amenities, or nearby locations!</div>
+      </div>
+    </div>
+    <div class="chat-input-box">
+      <input id="chat-input" placeholder="Ask about PGs..." onkeypress="handleChatKeypress(event)">
+      <button onclick="sendChatMessage()">➤</button>
+    </div>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // ============ TRANSLATIONS ============
+    const translations = {
+      en: {
+        panelTitle: "📍 Nearby PGs",
+        filterLabel: "🔽 Type Filter",
+        searchBtn: "🔍 Search PGs",
+        compareBtn: "⚖️ Compare PGs",
+        loading: "Loading PGs...",
+        noFound: "ℹ️ No PGs found",
+        calculating: "Calculating...",
+        aiTitle: "🤖 PG AI Assistant",
+        welcomeMsg: "👋 Hi! Ask me about PG rent, safety, food, amenities, or nearby locations!",
+        all: "All",
+        boys: "Boys",
+        girls: "Girls",
+        mixed: "Mixed"
+      },
+      bn: {
+        panelTitle: "📍 কাছাকাছি পিজি",
+        filterLabel: "🔽 ধরন ফিল্টার",
+        searchBtn: "🔍 পিজি খোঁজুন",
+        compareBtn: "⚖️ পিজি তুলনা করুন",
+        loading: "পিজি লোড হচ্ছে...",
+        noFound: "ℹ️ কোন পিজি পাওয়া যায়নি",
+        calculating: "গণনা করছে...",
+        aiTitle: "🤖 পিজি এআই সহায়ক",
+        welcomeMsg: "👋 নমস্কার! পিজির ভাড়া, নিরাপত্তা, খাবার, সুবিধা বা কাছাকাছি স্থান সম্পর্কে আমাকে জিজ্ঞাসা করুন!",
+        all: "সব",
+        boys: "ছেলেদের",
+        girls: "মেয়েদের",
+        mixed: "মিশ্র"
+      },
+      hi: {
+        panelTitle: "📍 पास के पीजी",
+        filterLabel: "🔽 प्रकार फिल्टर",
+        searchBtn: "🔍 पीजी खोजें",
+        compareBtn: "⚖️ पीजी की तुलना करें",
+        loading: "पीजी लोड हो रहे हैं...",
+        noFound: "ℹ️ कोई पीजी नहीं मिला",
+        calculating: "गणना जारी...",
+        aiTitle: "🤖 पीजी एआई सहायक",
+        welcomeMsg: "👋 नमस्ते! पीजी के किराए, सुरक्षा, भोजन, सुविधाओं या पास के स्थानों के बारे में पूछें!",
+        all: "सभी",
+        boys: "लड़कों के",
+        girls: "लड़कियों के",
+        mixed: "मिश्रित"
+      },
+      es: {
+        panelTitle: "📍 PGs Cercanos",
+        filterLabel: "🔽 Filtro de Tipo",
+        searchBtn: "🔍 Buscar PGs",
+        compareBtn: "⚖️ Comparar PGs",
+        loading: "Cargando PGs...",
+        noFound: "ℹ️ No se encontraron PGs",
+        calculating: "Calculando...",
+        aiTitle: "🤖 Asistente IA de PG",
+        welcomeMsg: "👋 ¡Hola! ¡Pregúntame sobre alquiler, seguridad, comida, comodidades o lugares cercanos!",
+        all: "Todos",
+        boys: "Chicos",
+        girls: "Chicas",
+        mixed: "Mixto"
+      },
+      fr: {
+        panelTitle: "📍 PGs Près de Vous",
+        filterLabel: "🔽 Filtre Type",
+        searchBtn: "🔍 Chercher PGs",
+        compareBtn: "⚖️ Comparer PGs",
+        loading: "Chargement des PGs...",
+        noFound: "ℹ️ Aucun PG trouvé",
+        calculating: "Calcul en cours...",
+        aiTitle: "🤖 Assistant IA PG",
+        welcomeMsg: "👋 Bonjour! Posez-moi des questions sur le loyer, la sécurité, la nourriture, les commodités ou les lieux à proximité!",
+        all: "Tous",
+        boys: "Garçons",
+        girls: "Filles",
+        mixed: "Mixte"
+      }
+    };
+
+    let currentLanguage = 'en';
+
+    function setLanguage(lang) {
+      currentLanguage = lang;
+      document.getElementById('language-select').value = lang;
+
+      // Update UI text
+      document.getElementById('panel-title').textContent = translations[lang].panelTitle;
+      document.getElementById('filter-label').textContent = translations[lang].filterLabel;
+      document.getElementById('search-btn').textContent = translations[lang].searchBtn;
+      document.getElementById('compare-btn').textContent = translations[lang].compareBtn;
+      document.getElementById('loading-text').textContent = translations[lang].loading;
+      document.getElementById('ai-title').textContent = translations[lang].aiTitle;
+      document.getElementById('welcome-msg').textContent = translations[lang].welcomeMsg;
+      
+      document.getElementById('all-filter').textContent = translations[lang].all;
+      document.getElementById('boys-filter').textContent = translations[lang].boys;
+      document.getElementById('girls-filter').textContent = translations[lang].girls;
+      document.getElementById('mixed-filter').textContent = translations[lang].mixed;
+
+      // Reload PGs with new language
+      showDistanceSortedPGs();
+    }
+
+    function getText(key) {
+      return translations[currentLanguage][key] || translations['en'][key];
+    }
+
+    // ============ GEMINI API CONFIG ============
+    const GEMINI_API_KEY = "AIzaSyCOtNkcDZrf29ehM-A1WTcZ36NKUmVnBOo";
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+    // ============ CHATBOT FUNCTIONS ============
+    function toggleChatbot() {
+      const container = document.getElementById('chatbot-container');
+      const toggle = document.getElementById('chatbot-toggle');
+      container.classList.toggle('active');
+      toggle.classList.toggle('hidden');
+    }
+
+    function handleChatKeypress(e) {
+      if (e.key === 'Enter') sendChatMessage();
+    }
+
+    function addChatMessage(text, type) {
+      const messagesDiv = document.getElementById('chat-messages');
+      const msg = document.createElement('div');
+      msg.className = `chat-msg ${type}-msg`;
+      msg.innerHTML = `<div class="chat-bubble">${text}</div>`;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    async function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      
+      if (!text) return;
+
+      addChatMessage(text, 'user');
+      input.value = '';
+
+      addChatMessage('⏳ ' + (currentLanguage === 'bn' ? 'চিন্তা করছি...' : 'Thinking...'), 'bot');
+      const typingMsg = document.getElementById('chat-messages').lastChild;
+
+      try {
+        const languageNote = currentLanguage === 'bn' ? 'Reply in Bengali language.' : '';
+        const response = await fetch(GEMINI_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              role: 'user',
+              parts: [{
+                text: `You are a helpful PG accommodation assistant. Answer briefly (1-2 sentences) about rent prices, safety, food, amenities, location, or nearby facilities. ${languageNote} Question: ${text}`
+              }]
+            }]
+          })
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(`API Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        typingMsg.remove();
+
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || '❌ Could not process.';
+        addChatMessage(reply, 'bot');
+
+      } catch (error) {
+        typingMsg.remove();
+        console.error('Chat error:', error);
+        addChatMessage('❌ ' + (currentLanguage === 'bn' ? 'ত্রুটি ঘটেছে' : 'Error occurred'), 'bot');
+      }
+    }
+
+    // ============ DISTANCE CALCULATION ============
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    // ============ GLOBAL STATE ============
+    let map;
+    let markers = [];
+    let collegeMarker;
+    let compareMode = false;
+    let selectedForComparison = [];
+    let currentFilter = 'All';
+    let favorites = [];
+
+    const collegeLocation = {
+      lat: 23.5495,
+      lng: 87.2907,
+      name: "Dr. B.C. Roy Engineering College"
+    };
+
+    const pgListData = [
+      { name: "Shivam PG", lat: 23.5518, lng: 87.2925, type: "Boys", rating: 4.5, rooms: "Single, Double, Triple", amenities: ["WiFi", "Mess", "AC", "Parking"], price: "₹8,000 - ₹12,000", contact: "9876543210" },
+      { name: "Royal Boys PG", lat: 23.5472, lng: 87.2868, type: "Boys", rating: 4.2, rooms: "Single, Double", amenities: ["WiFi", "AC", "Laundry", "Parking"], price: "₹7,500 - ₹10,000", contact: "9876543211" },
+      { name: "Sai Residency PG", lat: 23.5539, lng: 87.2953, type: "Mixed", rating: 4.8, rooms: "Single, Double, Triple", amenities: ["WiFi", "Mess", "AC", "Gym", "Parking"], price: "₹9,000 - ₹14,000", contact: "9876543212" },
+      { name: "Green View PG", lat: 23.5464, lng: 87.2831, type: "Boys", rating: 4.0, rooms: "Single, Double", amenities: ["WiFi", "Mess", "AC"], price: "₹7,000 - ₹9,500", contact: "9876543213" },
+      { name: "Krishna PG House", lat: 23.5505, lng: 87.2890, type: "Girls", rating: 4.7, rooms: "Single, Double, Triple", amenities: ["WiFi", "Mess", "AC", "Security"], price: "₹8,500 - ₹13,000", contact: "9876543214" },
+      { name: "Nest Accommodation", lat: 23.5550, lng: 87.2975, type: "Mixed", rating: 4.3, rooms: "Single, Double", amenities: ["WiFi", "Mess", "AC", "Parking"], price: "₹8,000 - ₹11,000", contact: "9876543215" },
+      { name: "Cozy Corner PG", lat: 23.5440, lng: 87.2805, type: "Boys", rating: 4.1, rooms: "Single, Double, Triple", amenities: ["WiFi", "Mess", "AC"], price: "₹7,500 - ₹10,500", contact: "9876543216" },
+      { name: "Sunrise Rooms", lat: 23.5520, lng: 87.2860, type: "Girls", rating: 4.6, rooms: "Single, Double", amenities: ["WiFi", "Mess", "AC", "Laundry", "Parking"], price: "₹8,500 - ₹12,500", contact: "9876543217" }
+    ];
+
+    // ============ MAP FUNCTIONS ============
+    function initMap() {
+      map = L.map('map').setView([collegeLocation.lat, collegeLocation.lng], 14);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19,
+        minZoom: 3
+      }).addTo(map);
+      showDistanceSortedPGs();
+    }
+
+    function clearMarkers() {
+      markers.forEach(m => m.remove());
+      markers = [];
+      if (collegeMarker) collegeMarker.remove();
+    }
+
+    function createCollegeMarker() {
+      const collegeDiv = L.divIcon({
+        html: '<div class="college-marker">🎓 College</div>',
+        iconSize: [130, 40],
+        className: ''
+      });
+      collegeMarker = L.marker([collegeLocation.lat, collegeLocation.lng], { icon: collegeDiv }).addTo(map);
+    }
+
+    function createDetailedPopup(pg) {
+      const stars = '⭐'.repeat(Math.floor(pg.rating));
+      const amenitiesHTML = pg.amenities.map(a => `<span class="amenity-badge">${a}</span>`).join('');
+      return `
+        <div class="pg-detail-popup">
+          <h2>🏠 ${pg.name}</h2>
+          <div class="detail-item">
+            <span class="detail-label">Rating</span>
+            <span class="detail-value">${stars} ${pg.rating}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Type</span>
+            <span class="detail-value">${pg.type}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Rooms</span>
+            <span class="detail-value">${pg.rooms}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Price</span>
+            <span class="detail-value">${pg.price}</span>
+          </div>
+          <div class="detail-item" style="flex-direction: column; align-items: flex-start;">
+            <span class="detail-label">Amenities</span>
+            <div>${amenitiesHTML}</div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Contact</span>
+            <span class="detail-value">${pg.contact}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function createPGMarker(pg, index) {
+      const pgDiv = L.divIcon({
+        html: `<div class="pg-marker">${index + 1}</div>`,
+        iconSize: [35, 40],
+        className: ''
+      });
+      const marker = L.marker([pg.lat, pg.lng], { icon: pgDiv }).addTo(map)
+        .bindPopup(createDetailedPopup(pg), { maxWidth: 300, closeButton: true });
+      markers.push(marker);
+    }
+
+    function filterByType(type) {
+      currentFilter = type;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      showDistanceSortedPGs();
+    }
+
+    function toggleCompareMode() {
+      compareMode = !compareMode;
+      document.querySelector('.compare-toggle').classList.toggle('active');
+      document.querySelectorAll('.pg-card').forEach(card => {
+        card.classList.toggle('compare-mode');
+      });
+      if (!compareMode) selectedForComparison = [];
+    }
+
+    function toggleFavorite(pgName) {
+      const index = favorites.indexOf(pgName);
+      if (index > -1) {
+        favorites.splice(index, 1);
+      } else {
+        favorites.push(pgName);
+      }
+    }
+
+    function showDistanceSortedPGs() {
+      const pgListEl = document.getElementById("pg-list");
+      const radius = parseInt(document.getElementById("radius").value);
+
+      pgListEl.innerHTML = `<div class="loading"><span>${getText('calculating')}</span></div>`;
+
+      setTimeout(() => {
+        clearMarkers();
+        createCollegeMarker();
+
+        let filteredPGs = pgListData.filter(pg => currentFilter === 'All' || pg.type === currentFilter);
+
+        const pgWithDistances = filteredPGs.map(pg => ({
+          ...pg,
+          distance: calculateDistance(collegeLocation.lat, collegeLocation.lng, pg.lat, pg.lng),
+          distanceText: calculateDistance(collegeLocation.lat, collegeLocation.lng, pg.lat, pg.lng).toFixed(2) + " km",
+          durationText: Math.ceil(calculateDistance(collegeLocation.lat, collegeLocation.lng, pg.lat, pg.lng) / 20) + " min"
+        })).filter(pg => pg.distance <= radius).sort((a, b) => a.distance - b.distance);
+
+        pgListEl.innerHTML = "";
+
+        if (pgWithDistances.length === 0) {
+          pgListEl.innerHTML = `<div class="loading">${getText('noFound')}</div>`;
+        } else {
+          pgWithDistances.forEach((pg, index) => {
+            createPGMarker(pg, index);
+            const stars = '⭐'.repeat(Math.floor(pg.rating));
+
+            const card = document.createElement("div");
+            card.className = "pg-card";
+            card.innerHTML = `
+              <button class="favorite-btn" onclick="toggleFavorite('${pg.name}'); event.stopPropagation();">♡</button>
+              <div class="pg-card-name">
+                <span class="pg-card-number">${index + 1}</span>
+                ${pg.name}
+              </div>
+              <div class="pg-card-info">
+                <span class="distance-tag">📏 ${pg.distanceText}</span>
+                <span class="duration-tag">⏱️ ${pg.durationText}</span>
+                <div style="margin-top: 8px; font-size: 12px; color: #4b5563; font-weight: 500;">
+                  ${pg.type} • ${stars} ${pg.rating}
+                </div>
+                <div style="margin-top: 8px; font-size: 11px; color: #6b7280;">
+                  ${pg.price}
+                </div>
+              </div>
+            `;
+
+            card.addEventListener("click", () => {
+              map.setView([pg.lat, pg.lng], 16);
+              setTimeout(() => markers[index].openPopup(), 300);
+            });
+
+            pgListEl.appendChild(card);
+          });
+        }
+      }, 300);
+    }
+
+    function searchPGs() {
+      const radius = document.getElementById("radius").value;
+      if (!radius || radius < 1) {
+        alert(currentLanguage === 'bn' ? "⚠️ বৈধ ব্যাসার্ধ প্রবেশ করুন (1-20 কিমি)" : "⚠️ Enter valid radius (1-20 km)");
+        return;
+      }
+      showDistanceSortedPGs();
+    }
+
+    document.getElementById("radius").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") searchPGs();
+    });
+
+    window.addEventListener("load", initMap);
+  </script>
+</body>
+</html>

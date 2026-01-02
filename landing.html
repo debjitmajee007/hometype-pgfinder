@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PG Finder – Smart PG Search</title>
+
+  <style>
+    /* =====================
+       GLOBAL RESET & DESIGN SYSTEM
+    ===================== */
+    :root {
+      --primary: #0a66ff;
+      --primary-dark: #0052cc;
+      --primary-light: #3b82f6;
+      --secondary: #6366f1;
+      --accent: #ec4899;
+      --success: #10b981;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border-color: #e5e7eb;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md: 0 6px 18px rgba(0,0,0,0.1);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+    }
+
+    body {
+      background: var(--bg-light);
+      color: var(--text-dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+      perspective: 1000px;
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* =====================
+       NAVBAR
+    ===================== */
+    header {
+      position: sticky;
+      top: 0;
+      background: var(--bg-white);
+      z-index: 1000;
+      box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(10px);
+    }
+
+    .navbar {
+      max-width: 1200px;
+      margin: auto;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    nav {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+
+    nav a {
+      font-weight: 500;
+      font-size: 14px;
+      color: var(--text-dark);
+      position: relative;
+      transition: var(--transition);
+    }
+
+    nav a::after {
+      content: "";
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: var(--transition);
+    }
+
+    nav a:hover::after {
+      width: 100%;
+    }
+
+    nav a:last-child {
+      background: var(--primary);
+      color: var(--bg-white);
+      padding: 8px 18px;
+      border-radius: 20px;
+      transition: var(--transition);
+    }
+
+    nav a:last-child:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    /* Dark Mode Toggle */
+    .theme-toggle {
+      width: 50px;
+      height: 26px;
+      background: var(--border-color);
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      position: relative;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      padding: 2px;
+    }
+
+    .theme-toggle.dark {
+      background: var(--text-dark);
+    }
+
+    .theme-toggle::after {
+      content: "☀️";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: var(--bg-white);
+      border-radius: 50%;
+      left: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      transition: var(--transition);
+    }
+
+    .theme-toggle.dark::after {
+      content: "🌙";
+      left: 26px;
+    }
+
+    /* =====================
+       HERO SECTION
+    ===================== */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 140px 40px;
+      text-align: center;
+      color: var(--bg-white);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      min-height: 550px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1200px;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      25% { background-position: 100% 50%; }
+      50% { background-position: 0% 50%; }
+      75% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      animation: floatBlob 14s infinite alternate ease-in-out;
+    }
+
+    .hero::before {
+      width: 400px;
+      height: 400px;
+      background: rgba(255,255,255,0.1);
+      top: -100px;
+      left: -100px;
+    }
+
+    .hero::after {
+      width: 350px;
+      height: 350px;
+      background: rgba(255,255,255,0.08);
+      bottom: -120px;
+      right: -80px;
+      animation-delay: 4s;
+    }
+
+    @keyframes floatBlob {
+      from { transform: translate(0,0); }
+      to { transform: translate(80px,60px); }
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      max-width: 700px;
+      margin: 0 auto;
+      transform-style: preserve-3d;
+      animation: float3D 6s ease-in-out infinite;
+    }
+
+    @keyframes float3D {
+      0%, 100% { transform: translateZ(0) rotateX(0deg) rotateY(0deg); }
+      25% { transform: translateZ(40px) rotateX(2deg) rotateY(-3deg); }
+      50% { transform: translateZ(60px) rotateX(-2deg) rotateY(3deg); }
+      75% { transform: translateZ(40px) rotateX(2deg) rotateY(-2deg); }
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      margin-bottom: 20px;
+      font-weight: 800;
+      line-height: 1.1;
+      animation: fadeInUp 0.8s ease forwards, gradientShift 6s ease-in-out infinite, tilt3D 3s ease-in-out infinite;
+      letter-spacing: -1.5px;
+      background: linear-gradient(90deg, #ffffff 0%, #e0f4ff 25%, #ffd4e5 50%, #e0f4ff 75%, #ffffff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transform-style: preserve-3d;
+    }
+
+    @keyframes tilt3D {
+      0%, 100% { transform: perspective(1000px) rotateX(0deg) rotateY(0deg); }
+      25% { transform: perspective(1000px) rotateX(2deg) rotateY(-3deg); }
+      50% { transform: perspective(1000px) rotateX(0deg) rotateY(0deg); }
+      75% { transform: perspective(1000px) rotateX(-2deg) rotateY(3deg); }
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .hero p {
+      font-size: 18px;
+      margin-bottom: 15px;
+      opacity: 0.95;
+      animation: fadeInUp 1s ease forwards;
+      font-weight: 300;
+    }
+
+    .hero-subtext {
+      font-size: 16px;
+      opacity: 0.85;
+      margin-bottom: 40px;
+      animation: fadeInUp 1.2s ease forwards;
+      line-height: 1.7;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(25px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeInUp 1.4s ease forwards;
+    }
+
+    .hero-buttons a {
+      display: inline-block;
+      padding: 16px 40px;
+      border-radius: 35px;
+      font-weight: 600;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      font-size: 16px;
+      animation: buttonSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      opacity: 0;
+    }
+
+    .hero-buttons a:nth-child(1) {
+      animation-delay: 1.6s;
+    }
+
+    .hero-buttons a:nth-child(2) {
+      animation-delay: 1.9s;
+    }
+
+    @keyframes buttonSlideIn {
+      from { 
+        opacity: 0; 
+        transform: translateY(20px) scale(0.9);
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .btn-primary {
+      background: var(--bg-white);
+      color: var(--primary);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      position: relative;
+    }
+
+    .btn-primary::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s;
+    }
+
+    .btn-primary:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+
+    .btn-secondary {
+      border: 2.5px solid var(--bg-white);
+      color: var(--bg-white);
+      background: transparent;
+      position: relative;
+    }
+
+    .btn-secondary::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.15);
+      border-radius: 35px;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .btn-secondary:hover::before {
+      opacity: 1;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.15);
+      transform: translateY(-6px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    /* =====================
+       GENERAL SECTIONS
+    ===================== */
+    section {
+      padding: 100px 20px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    section h2 {
+      text-align: center;
+      margin-bottom: 60px;
+      font-size: 36px;
+      color: var(--text-dark);
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    section p {
+      color: var(--text-light);
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    /* =====================
+       FEATURE CARDS
+    ===================== */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px,1fr));
+      gap: 30px;
+    }
+
+    .card {
+      background: var(--bg-white);
+      padding: 40px 30px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+      transition: var(--transition);
+      border: 2px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+      animation: cardFadeIn 0.6s ease-out forwards;
+      opacity: 0;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.1s; }
+    .card:nth-child(2) { animation-delay: 0.2s; }
+    .card:nth-child(3) { animation-delay: 0.3s; }
+    .card:nth-child(4) { animation-delay: 0.4s; }
+    .card:nth-child(5) { animation-delay: 0.5s; }
+    .card:nth-child(6) { animation-delay: 0.6s; }
+
+    @keyframes cardFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px) rotateX(-20deg) rotateY(10deg) translateZ(-40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg) rotateY(0deg) translateZ(0px);
+      }
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #4facfe);
+      background-size: 300% 100%;
+      border-radius: 16px 16px 0 0;
+      opacity: 1;
+      animation: gradientFlow 3s ease infinite;
+      transition: var(--transition);
+    }
+
+    @keyframes gradientFlow {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 0%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(10, 102, 255, 0.08), transparent);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-14px) scale(1.03) rotateX(4deg) rotateY(-4deg) translateZ(25px);
+      box-shadow: 0 28px 55px rgba(10, 102, 255, 0.3), inset 0 1px 0 rgba(255,255,255,0.5);
+      border-color: rgba(10, 102, 255, 0.2);
+    }
+
+    .card:hover::after {
+      opacity: 1;
+    }
+
+    .card > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .feature-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      display: inline-block;
+      animation: breathe 3s infinite ease-in-out, rotateIcon 4s infinite ease-in-out;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes rotateIcon {
+      0%, 100% { transform: rotateX(0deg) rotateY(0deg); }
+      25% { transform: rotateX(8deg) rotateY(12deg); }
+      50% { transform: rotateX(0deg) rotateY(24deg); }
+      75% { transform: rotateX(-8deg) rotateY(12deg); }
+    }
+
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 12px;
+      color: var(--text-dark);
+      font-weight: 700;
+    }
+
+    .card p {
+      color: var(--text-light);
+      font-size: 15px;
+      margin: 0;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+
+    /* =====================
+       HOW IT WORKS SECTION
+    ===================== */
+    .how-it-works-intro {
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShiftText 4s ease infinite;
+    }
+
+    @keyframes gradientShiftText {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 0%; }
+      100% { background-position: 0% 0%; }
+    }
+
+    .how-it-works-intro h2 {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+      gap: 30px;
+      position: relative;
+    }
+
+    .steps::before {
+      content: "";
+      position: absolute;
+      top: 30px;
+      left: 5%;
+      right: 5%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, rgba(10, 102, 255, 0.3), transparent);
+      z-index: 0;
+      display: none;
+    }
+
+    @media (min-width: 800px) {
+      .steps::before {
+        display: block;
+      }
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+      animation: stepFadeIn 0.7s ease-out forwards;
+      opacity: 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(240, 147, 251, 0.05));
+      padding: 30px 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(102, 126, 234, 0.1);
+      transition: var(--transition);
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    .step:nth-child(1) { animation-delay: 0.2s; }
+    .step:nth-child(2) { animation-delay: 0.4s; }
+    .step:nth-child(3) { animation-delay: 0.6s; }
+    .step:nth-child(4) { animation-delay: 0.8s; }
+
+    @keyframes stepFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .step:hover {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.12), rgba(240, 147, 251, 0.12));
+      border-color: rgba(102, 126, 234, 0.25);
+      transform: translateY(-8px) rotateX(3deg) rotateY(2deg) translateZ(25px);
+      box-shadow: 0 20px 45px rgba(102, 126, 234, 0.25), inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+
+    .step-circle {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      background-size: 200% 200%;
+      color: var(--bg-white);
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 28px;
+      animation: popIn 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards, pulseGradient 3s ease infinite, spin3D 4s linear infinite;
+      box-shadow: 0 10px 28px rgba(102, 126, 234, 0.4), 0 0 30px rgba(102, 126, 234, 0.2);
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      transform-style: preserve-3d;
+    }
+
+    @keyframes spin3D {
+      0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+      25% { transform: rotateX(8deg) rotateY(12deg) rotateZ(0deg); }
+      50% { transform: rotateX(0deg) rotateY(24deg) rotateZ(0deg); }
+      75% { transform: rotateX(-8deg) rotateY(12deg) rotateZ(0deg); }
+      100% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulseGradient {
+      0%, 100% { box-shadow: 0 10px 28px rgba(102, 126, 234, 0.4); }
+      50% { box-shadow: 0 15px 40px rgba(240, 147, 251, 0.5); }
+    }
+
+    .step h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--text-dark);
+      position: relative;
+      z-index: 1;
+    }
+
+    .step p {
+      color: var(--text-light);
+      font-size: 15px;
+      margin: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =====================
+       FUTURE FEATURES SECTION
+    ===================== */
+    .future {
+      background: linear-gradient(135deg, rgba(10, 102, 255, 0.05), rgba(99, 102, 241, 0.05));
+      border-radius: 20px;
+      position: relative;
+    }
+
+    .future-intro {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .future .card {
+      opacity: 0.75;
+      border: 2px dashed var(--border-color);
+      position: relative;
+      cursor: default;
+    }
+
+    .future .card:hover {
+      transform: translateY(-8px);
+    }
+
+    .future .card::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(10, 102, 255, 0.05), transparent);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    .tooltip {
+      position: absolute;
+      bottom: 110%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;
+      color: var(--bg-white);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: var(--transition);
+      z-index: 100;
+      font-weight: 500;
+    }
+
+    .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #1f2937;
+    }
+
+    .future .card:hover .tooltip {
+      opacity: 1;
+    }
+
+    /* =====================
+       FLOATING ACTION BUTTONS
+    ===================== */
+    .floating-icons {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 999;
+    }
+
+    .float-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--bg-white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      animation: floatLoop 3s ease-in-out infinite;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(10, 102, 255, 0.3);
+      transition: var(--transition);
+    }
+
+    .float-icon:hover {
+      transform: scale(1.15) translateY(-8px);
+      box-shadow: 0 16px 40px rgba(10, 102, 255, 0.45);
+    }
+
+    @keyframes floatLoop {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-18px) scale(1.05); }
+    }
+
+    /* =====================
+       CTA SECTION
+    ===================== */
+    .cta {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      color: var(--bg-white);
+      text-align: center;
+      border-radius: 20px;
+      padding: 80px 30px !important;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .cta h2 {
+      color: var(--bg-white);
+      position: relative;
+      z-index: 2;
+      margin-bottom: 15px;
+    }
+
+    .cta p {
+      color: rgba(255,255,255,0.9);
+      font-size: 18px;
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cta a {
+      display: inline-block;
+      background: var(--bg-white);
+      color: var(--primary);
+      padding: 14px 36px;
+      border-radius: 30px;
+      font-weight: 700;
+      transition: var(--transition);
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .cta a:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+    }
+
+    /* =====================
+       FOOTER
+    ===================== */
+    footer {
+      background: #111827;
+      color: #9ca3af;
+      text-align: center;
+      padding: 40px 20px;
+      font-size: 15px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    footer p {
+      margin: 0;
+    }
+
+    .footer-links {
+      margin-top: 15px;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: #9ca3af;
+      font-size: 14px;
+      transition: var(--transition);
+    }
+
+    .footer-links a:hover {
+      color: var(--primary);
+    }
+
+    /* =====================
+       RESPONSIVE DESIGN
+    ===================== */
+    /* Dark Mode Theme */
+    html.dark-mode {
+      --primary: #4f46e5;
+      --primary-dark: #4338ca;
+      --primary-light: #818cf8;
+      --secondary: #a78bfa;
+      --accent: #f472b6;
+      --text-dark: #f3f4f6;
+      --text-light: #d1d5db;
+      --bg-light: #111827;
+      --bg-white: #1f2937;
+      --border-color: #374151;
+    }
+
+    html.dark-mode body {
+      background: var(--bg-light);
+    }
+
+    html.dark-mode header {
+      background: var(--bg-white);
+    }
+
+    html.dark-mode section {
+      background: transparent;
+    }
+
+    html.dark-mode .card {
+      background: var(--bg-white);
+    }
+
+    html.dark-mode .future {
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(167, 139, 250, 0.1));
+    }
+
+    /* AI Chatbot Typing Animation */
+    .chatbot-container {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      width: 350px;
+      max-width: 90vw;
+      background: var(--bg-white);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      display: none;
+      flex-direction: column;
+      z-index: 998;
+      animation: slideInUp 0.4s ease forwards;
+    }
+
+    .chatbot-container.show {
+      display: flex;
+    }
+
+    @keyframes slideInUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .chatbot-header {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: var(--bg-white);
+      padding: 16px;
+      border-radius: 16px 16px 0 0;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chatbot-close {
+      background: none;
+      border: none;
+      color: var(--bg-white);
+      font-size: 20px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .chatbot-close:hover {
+      opacity: 0.8;
+    }
+
+    .chatbot-messages {
+      flex: 1;
+      padding: 16px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      max-width: 90%;
+      word-wrap: break-word;
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: var(--bg-white);
+      border-radius: 12px 2px 12px 12px;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background: var(--border-color);
+      color: var(--text-dark);
+      border-radius: 2px 12px 12px 12px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-light);
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+      30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    .chatbot-input {
+      display: flex;
+      padding: 12px;
+      gap: 8px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .chatbot-input input {
+      flex: 1;
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 8px 14px;
+      font-size: 14px;
+      background: var(--bg-light);
+      color: var(--text-dark);
+      transition: var(--transition);
+    }
+
+    html.dark-mode .chatbot-input input {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .chatbot-input input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(10, 102, 255, 0.1);
+    }
+
+    .chatbot-input button {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--bg-white);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      font-size: 16px;
+    }
+
+    .chatbot-input button:hover {
+      background: var(--primary-dark);
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      nav {
+        gap: 15px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .hero {
+        padding: 80px 20px;
+        min-height: auto;
+      }
+
+      .hero h1 {
+        font-size: 38px;
+        line-height: 1.15;
+      }
+
+      .hero p {
+        font-size: 16px;
+      }
+
+      .hero-subtext {
+        font-size: 14px;
+      }
+
+      .hero-buttons {
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .hero-buttons a {
+        width: 100%;
+        padding: 14px 32px;
+        font-size: 15px;
+        perspective: 1000px;
+        transform-style: preserve-3d;
+      }
+
+      section h2 {
+        font-size: 28px;
+      }
+
+      .floating-icons {
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="navbar">
+    <div class="logo">🏠 PG Finder</div>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="login.html" class="btn btn-ghost btn-sm">Login</a>
+      <a href="signup.html" class="btn btn-primary btn-sm">Sign Up</a>
+      <button class="theme-toggle" id="themeToggle" title="Toggle Dark Mode"></button>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="home">
+  <div class="hero-content">
+    <h1>Find Your Perfect PG Home Near College</h1>
+    <p>Discover verified, affordable accommodations in minutes</p>
+    <p class="hero-subtext">Browse thousands of student-friendly PGs with real reviews, transparent pricing, and distance-based search filters to find your ideal home away from home.</p>
+    <div class="hero-buttons">
+      <a href="#" class="btn-primary">🔍 Find PG Now</a>
+      <a href="#" class="btn-secondary">📋 List Your PG</a>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <h2>Why Choose PG Finder?</h2>
+  <p style="text-align: center; color: var(--text-light); margin-bottom: 50px; font-size: 18px; max-width: 700px; margin-left: auto; margin-right: auto; line-height: 1.8;">We've built the most trusted platform for students to find their perfect home. With cutting-edge verification, smart filtering, and a supportive community, finding your ideal PG has never been easier. Join thousands of students who've already made the switch.</p>
+  <div class="features">
+    <div class="card" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);">
+      <div class="feature-icon">✅</div>
+      <h3>Verified Listings</h3>
+      <p>Every PG is manually verified by our expert team. We check photos, amenities, pricing, and owner credentials to guarantee authenticity and quality for your complete peace of mind.</p>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);">
+      <div class="feature-icon">📍</div>
+      <h3>Smart Distance Sorting</h3>
+      <p>Our intelligent location-based algorithm finds PGs closest to your college. See distance, travel time, and nearby facilities all in one view for easy comparison.</p>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);">
+      <div class="feature-icon">👤</div>
+      <h3>Dual Dashboards</h3>
+      <p>Students get a beautiful search interface. Owners get powerful management tools. Both enjoy seamless, intuitive experiences tailored to their needs.</p>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);">
+      <div class="feature-icon">🛡️</div>
+      <h3>Admin Approval</h3>
+      <p>Every new listing passes through our rigorous verification process. We check for legitimacy, quality standards, and compliance to maintain platform excellence.</p>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);">
+      <div class="feature-icon">🔐</div>
+      <h3>Secure Login</h3>
+      <p>Your data is protected with enterprise-grade encryption. We use industry best practices to secure passwords, transactions, and personal information.</p>
+    </div>
+    <div class="card" style="background: linear-gradient(135deg, #fed7aa 0%, #fdbf60 100%);">
+      <div class="feature-icon">📱</div>
+      <h3>Mobile Optimized</h3>
+      <p>Search, browse, and book from any device. Our responsive design ensures a smooth experience on smartphones, tablets, and desktops with no compromise.</p>
+    </div>
+  </div>
+</section>
+
+<section id="how-it-works">
+  <div class="how-it-works-intro">
+    <h2>How It Works in 4 Simple Steps</h2>
+    <p>Get connected with your ideal PG in no time with our streamlined process.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-circle">1</div>
+      <h3>Owner Lists PG</h3>
+      <p>Property owners create detailed listings with photos, amenities, and pricing information.</p>
+    </div>
+    <div class="step">
+      <div class="step-circle">2</div>
+      <h3>Admin Review</h3>
+      <p>Our team verifies all details to ensure quality and authenticity of every listing.</p>
+    </div>
+    <div class="step">
+      <div class="step-circle">3</div>
+      <h3>Student Searches</h3>
+      <p>Students browse verified listings, filter by location, price, and amenities effortlessly.</p>
+    </div>
+    <div class="step">
+      <div class="step-circle">4</div>
+      <h3>Book Your PG</h3>
+      <p>Connect directly with owners, finalize details, and move into your new home.</p>
+    </div>
+  </div>
+</section>
+
+<section class="future">
+  <div class="future-intro">
+    <h2>🚀 Exciting Features Coming Soon</h2>
+    <p>We're constantly innovating to make your PG experience even better. Stay tuned!</p>
+  </div>
+  <div class="features">
+    <div class="card">
+      <div class="feature-icon">🤖</div>
+      <h3>AI Chatbot Assistant</h3>
+      <p>Get instant answers to common questions about PGs, amenities, and the booking process.</p>
+      <div class="tooltip">Coming in Q2 2025</div>
+    </div>
+    <div class="card">
+      <div class="feature-icon">🍽️</div>
+      <h3>Mess & Food Options</h3>
+      <p>Integrated food and mess services with customizable meal plans and dietary preferences.</p>
+      <div class="tooltip">Coming in Q2 2025</div>
+    </div>
+    <div class="card">
+      <div class="feature-icon">👕</div>
+      <h3>Laundry Services</h3>
+      <p>On-demand laundry pickup and delivery service available at select PG locations.</p>
+      <div class="tooltip">Coming in Q3 2025</div>
+    </div>
+    <div class="card">
+      <div class="feature-icon">💳</div>
+      <h3>Online Booking & Payment</h3>
+      <p>Complete your PG booking securely online with multiple payment options and guarantees.</p>
+      <div class="tooltip">Coming in Q1 2025</div>
+    </div>
+  </div>
+</section>
+
+<div class="chatbot-container" id="chatbot">
+  <div class="chatbot-header">
+    <span>🤖 PG Assistant</span>
+    <button class="chatbot-close" id="chatbotClose">✕</button>
+  </div>
+  <div class="chatbot-messages" id="chatMessages">
+    <div class="message bot">
+      <div style="padding: 8px 0;">
+        <span style="font-size: 12px; color: var(--text-light);">PG Assistant is typing</span>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="chatbot-input">
+    <input type="text" id="chatInput" placeholder="Ask me anything..." />
+    <button id="chatSend">➤</button>
+  </div>
+</div>
+
+<div class="floating-icons">
+  <div class="float-icon" id="chatToggle" title="Open AI Chat">🤖</div>
+  <div class="float-icon" title="Meals & Mess - Coming Soon">🍽️</div>
+  <div class="float-icon" title="Laundry Services - Coming Soon">👕</div>
+</div>
+
+<section class="cta">
+  <h2>Ready to Find Your Perfect PG?</h2>
+  <p>Join thousands of students who've already found their ideal home near campus</p>
+  <a href="#">Start Searching Now →</a>
+</section>
+
+<footer>
+  <p>© 2025 PG Finder – College Project | Hackathon Ready</p>
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Service</a>
+    <a href="#">Contact Us</a>
+    <a href="#">About Us</a>
+  </div>
+</footer>
+
+<script>
+  // Dark Mode Toggle
+  const themeToggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+
+  // Check for saved theme preference or default to light mode
+  const currentTheme = localStorage.getItem('theme') || 'light';
+  if (currentTheme === 'dark') {
+    html.classList.add('dark-mode');
+    themeToggle.classList.add('dark');
+  }
+
+  themeToggle.addEventListener('click', () => {
+    html.classList.toggle('dark-mode');
+    themeToggle.classList.toggle('dark');
+    
+    const theme = html.classList.contains('dark-mode') ? 'dark' : 'light';
+    localStorage.setItem('theme', theme);
+  });
+
+  // AI Chatbot Functionality
+  const chatToggle = document.getElementById('chatToggle');
+  const chatbot = document.getElementById('chatbot');
+  const chatClose = document.getElementById('chatbotClose');
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+  const chatMessages = document.getElementById('chatMessages');
+
+  const responses = [
+    "What can I help you find today?",
+    "Looking for a PG near your college? I can help!",
+    "Would you like to know about verified listings?",
+    "Our smart distance sorting makes finding PGs easy!",
+    "How many roommates are you looking for?",
+    "What's your budget for accommodation?",
+    "I can show you the closest PGs to your college!",
+    "Are you interested in any specific amenities?",
+    "Let me help you find the perfect PG home!",
+    "Would you like to list your own PG with us?"
+  ];
+
+  chatToggle.addEventListener('click', () => {
+    chatbot.classList.toggle('show');
+  });
+
+  chatClose.addEventListener('click', () => {
+    chatbot.classList.remove('show');
+  });
+
+  function addMessage(text, isUser) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+    
+    if (isUser) {
+      messageDiv.textContent = text;
+      chatMessages.appendChild(messageDiv);
+    } else {
+      // Show typing indicator first
+      const typingDiv = document.createElement('div');
+      typingDiv.innerHTML = '<div style="padding: 8px 0;"><span style="font-size: 12px; color: var(--text-light);">PG Assistant is typing</span><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>';
+      messageDiv.appendChild(typingDiv);
+      chatMessages.appendChild(messageDiv);
+
+      setTimeout(() => {
+        messageDiv.innerHTML = '';
+        let charIndex = 0;
+        const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+        const messageText = document.createElement('div');
+        messageDiv.appendChild(messageText);
+        
+        function typeMessage() {
+          if (charIndex < randomResponse.length) {
+            messageText.textContent += randomResponse[charIndex];
+            charIndex++;
+            setTimeout(typeMessage, 25); // Faster typing: 25ms per char
+          }
+        }
+        typeMessage();
+      }, 1200); // Faster response time
+    }
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  chatSend.addEventListener('click', () => {
+    const text = chatInput.value.trim();
+    if (text) {
+      addMessage(text, true);
+      chatInput.value = '';
+      setTimeout(() => addMessage('', false), 500);
+    }
+  });
+
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      const text = chatInput.value.trim();
+      if (text) {
+        addMessage(text, true);
+        chatInput.value = '';
+        setTimeout(() => addMessage('', false), 500);
+      }
+    }
+  });
+
+  // Initial greeting
+  setTimeout(() => {
+    if (chatbot.classList.contains('show')) {
+      addMessage('', false);
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
+

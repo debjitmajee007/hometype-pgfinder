@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - PG Finder</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* =====================
+       GLOBAL RESET & 3D DESIGN SYSTEM
+    ===================== */
+    :root {
+      --primary: #0a66ff;
+      --primary-dark: #0052cc;
+      --primary-light: #3b82f6;
+      --secondary: #6366f1;
+      --accent: #ec4899;
+      --success: #10b981;
+      --text-dark: #1f2937;
+      --text-light: #6b7280;
+      --bg-light: #f8fafc;
+      --bg-white: #ffffff;
+      --border-color: #e5e7eb;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-md: 0 6px 18px rgba(0,0,0,0.1);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,0.12);
+      --shadow-xl: 0 20px 50px rgba(0,0,0,0.15);
+      --transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+      background-size: 400% 400%;
+      animation: gradientMove 15s ease infinite;
+      color: var(--text-dark);
+      line-height: 1.6;
+      overflow-x: hidden;
+      perspective: 1000px;
+      min-height: 100vh;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      25% { background-position: 100% 50%; }
+      50% { background-position: 0% 50%; }
+      75% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    /* =====================
+       AUTH PAGE CONTAINER
+    ===================== */
+    .auth-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-page::before,
+    .auth-page::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: floatBlob 15s infinite alternate ease-in-out;
+    }
+
+    .auth-page::before {
+      width: 500px;
+      height: 500px;
+      background: rgba(255, 255, 255, 0.15);
+      top: -100px;
+      left: -100px;
+    }
+
+    .auth-page::after {
+      width: 400px;
+      height: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      bottom: -80px;
+      right: -50px;
+      animation-delay: 5s;
+    }
+
+    @keyframes floatBlob {
+      from { transform: translate(0, 0) scale(1); }
+      to { transform: translate(100px, 80px) scale(1.1); }
+    }
+
+    /* =====================
+       AUTH CONTAINER
+    ===================== */
+    .auth-container {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+      z-index: 10;
+      animation: containerFloat 6s ease-in-out infinite;
+    }
+
+    @keyframes containerFloat {
+      0%, 100% { transform: translateY(0px) translateZ(0px); }
+      50% { transform: translateY(-20px) translateZ(30px); }
+    }
+
+    /* =====================
+       AUTH HEADER
+    ===================== */
+    .auth-header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeInDown 0.8s ease forwards;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--bg-white);
+      text-decoration: none;
+      margin-bottom: 20px;
+      transition: var(--transition);
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      animation: logoFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateZ(0) rotateX(0deg); }
+      50% { transform: translateZ(20px) rotateX(5deg); }
+    }
+
+    .auth-logo-icon {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+      background-size: 200% 200%;
+      border-radius: 12px;
+      color: var(--bg-white);
+      font-size: 28px;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      animation: iconSpin 4s linear infinite, iconPulse 2s ease-in-out infinite;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes iconSpin {
+      0% { transform: rotateY(0deg); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    @keyframes iconPulse {
+      0%, 100% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
+      50% { box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6); }
+    }
+
+    .auth-title {
+      font-size: 40px;
+      font-weight: 800;
+      color: var(--bg-white);
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #ffffff 0%, #e0f4ff 50%, #ffd4e5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: titleGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes titleGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+
+    .auth-subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.85);
+      opacity: 0.95;
+      animation: fadeInUp 1s ease forwards;
+      animation-delay: 0.2s;
+      opacity: 0;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* =====================
+       AUTH CARD - 3D EFFECT
+    ===================== */
+    .auth-card {
+      background-color: var(--bg-white);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(102, 126, 234, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 50px 40px;
+      position: relative;
+      overflow: hidden;
+      animation: cardSlideIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      animation-delay: 0.3s;
+      opacity: 0;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+      backdrop-filter: blur(10px);
+    }
+
+    @keyframes cardSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(40px) rotateX(-30deg) translateZ(-100px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) rotateX(0deg) translateZ(0);
+      }
+    }
+
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+      z-index: 1;
+    }
+
+    .auth-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), transparent);
+      border-radius: 24px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .auth-card > * {
+      position: relative;
+      z-index: 3;
+    }
+
+    /* =====================
+       FORM STYLES
+    ===================== */
+    .auth-form {
+      margin-top: 30px;
+    }
+
+    .auth-form-group {
+      margin-bottom: 25px;
+      animation: fadeInUp 0.6s ease forwards;
+      opacity: 0;
+    }
+
+    .auth-form-group:nth-child(1) { animation-delay: 0.4s; }
+    .auth-form-group:nth-child(2) { animation-delay: 0.5s; }
+
+    .auth-form-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+    }
+
+    .auth-form-input {
+      width: 100%;
+      padding: 14px 18px;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-dark);
+      background: linear-gradient(135deg, #f9f9ff 0%, #f3f4f8 100%);
+      border: 2px solid var(--border-color);
+      border-radius: 12px;
+      transition: all var(--transition);
+      outline: none;
+      position: relative;
+      z-index: 1;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    .auth-form-input::placeholder {
+      color: #9ca3af;
+    }
+
+    .auth-form-input:focus {
+      border-color: var(--primary);
+      background: var(--bg-white);
+      box-shadow: 0 0 0 4px rgba(10, 102, 255, 0.15), 0 10px 25px rgba(10, 102, 255, 0.2);
+      transform: translateZ(10px) scale(1.01);
+    }
+
+    .auth-form-input.error {
+      border-color: #ef4444;
+      animation: shake 0.4s ease;
+    }
+
+    .auth-form-input.error:focus {
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .auth-form-error {
+      display: block;
+      font-size: 13px;
+      color: #ef4444;
+      margin-top: 8px;
+      min-height: 20px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .auth-form-error:empty {
+      display: none;
+    }
+
+    /* =====================
+       PASSWORD TOGGLE
+    ===================== */
+    .password-toggle {
+      position: relative;
+    }
+
+    .password-toggle-button {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-light);
+      cursor: pointer;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      transition: all var(--transition);
+      z-index: 10;
+    }
+
+    .password-toggle-button:hover {
+      color: var(--primary);
+      background: rgba(10, 102, 255, 0.1);
+      transform: translateY(-50%) scale(1.1) rotateZ(10deg);
+    }
+
+    .password-toggle-button svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .password-toggle .auth-form-input {
+      padding-right: 50px;
+    }
+
+    /* =====================
+       FORM ACTIONS
+    ===================== */
+    .auth-form-actions {
+      margin-top: 35px;
+      animation: fadeInUp 0.8s ease forwards;
+      animation-delay: 0.6s;
+      opacity: 0;
+    }
+
+    .btn {
+      padding: 15px 32px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s ease;
+      z-index: 1;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      background-size: 200% 200%;
+      color: var(--bg-white);
+      box-shadow: 0 10px 30px rgba(10, 102, 255, 0.3);
+      animation: buttonGradient 4s ease infinite;
+      perspective: 1000px;
+      transform-style: preserve-3d;
+    }
+
+    @keyframes buttonGradient {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-4px) translateZ(15px);
+      box-shadow: 0 20px 50px rgba(10, 102, 255, 0.45);
+    }
+
+    .btn-primary:active {
+      transform: translateY(-2px) translateZ(8px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* =====================
+       FORM FOOTER
+    ===================== */
+    .auth-form-footer {
+      margin-top: 30px;
+      text-align: center;
+      padding-top: 30px;
+      border-top: 2px solid var(--border-color);
+      animation: fadeInUp 0.9s ease forwards;
+      animation-delay: 0.7s;
+      opacity: 0;
+    }
+
+    .auth-form-footer-text {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 15px;
+    }
+
+    .auth-form-footer-link {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+      position: relative;
+      display: inline-block;
+      transition: all var(--transition);
+      margin: 0 5px;
+    }
+
+    .auth-form-footer-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width var(--transition);
+    }
+
+    .auth-form-footer-link:hover {
+      color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .auth-form-footer-link:hover::after {
+      width: 100%;
+    }
+
+    /* =====================
+       RESPONSIVE DESIGN
+    ===================== */
+    @media (max-width: 640px) {
+      .auth-card {
+        padding: 35px 24px;
+      }
+
+      .auth-title {
+        font-size: 32px;
+      }
+
+      .auth-subtitle {
+        font-size: 14px;
+      }
+
+      .btn {
+        padding: 14px 24px;
+        font-size: 14px;
+      }
+
+      .auth-page::before {
+        width: 300px;
+        height: 300px;
+      }
+
+      .auth-page::after {
+        width: 250px;
+        height: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-container">
+      <div class="auth-header">
+        <a href="/" class="auth-logo">
+          <div class="auth-logo-icon">🏠</div>
+          <span>PG Finder</span>
+        </a>
+        <h1 class="auth-title">Welcome Back</h1>
+        <p class="auth-subtitle">Sign in to your account to continue</p>
+      </div>
+
+      <div class="auth-card">
+        <form class="auth-form" id="loginForm">
+          <div class="auth-form-group">
+            <label for="loginEmail" class="auth-form-label">Email Address</label>
+            <input
+              type="email"
+              id="loginEmail"
+              name="email"
+              class="auth-form-input"
+              placeholder="Enter your email"
+              required
+            >
+            <span class="auth-form-error" id="emailError"></span>
+          </div>
+
+          <div class="auth-form-group">
+            <label for="loginPassword" class="auth-form-label">Password</label>
+            <div class="password-toggle">
+              <input
+                type="password"
+                id="loginPassword"
+                name="password"
+                class="auth-form-input"
+                placeholder="Enter your password"
+                required
+              >
+              <button
+                type="button"
+                class="password-toggle-button"
+                id="togglePassword"
+                aria-label="Toggle password visibility"
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
+            <span class="auth-form-error" id="passwordError"></span>
+          </div>
+
+          <div class="auth-form-actions">
+            <button type="submit" class="btn btn-primary">
+              Sign In
+            </button>
+          </div>
+
+          <div class="auth-form-footer">
+            <p class="auth-form-footer-text">
+              Don't have an account?
+              <a href="signup.html" class="auth-form-footer-link">Sign up</a>
+            </p>
+            <a href="#" class="auth-form-footer-link" style="font-size: 12px; display: block; margin-top: 8px;">
+              Forgot your password?
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Password toggle functionality
+    const togglePassword = document.getElementById('togglePassword');
+    const loginPassword = document.getElementById('loginPassword');
+
+    if (togglePassword && loginPassword) {
+      togglePassword.addEventListener('click', () => {
+        const type = loginPassword.getAttribute('type') === 'password' ? 'text' : 'password';
+        loginPassword.setAttribute('type', type);
+        
+        // Update icon
+        const icon = togglePassword.querySelector('svg');
+        if (type === 'password') {
+          icon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          `;
+        } else {
+          icon.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+          `;
+        }
+      });
+    }
+
+    // API Configuration
+    const API_BASE_URL = 'http://localhost:3000/api';
+    
+    console.log('API Base URL:', API_BASE_URL);
+
+    function decodeJWT(token) {
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (error) {
+        console.error('Error decoding JWT:', error);
+        return null;
+      }
+    }
+
+    function redirectByRole(role) {
+      const roleRoutes = {
+        'student': 'student-dashboard.html',
+        'owner': 'owner-dashboard.html',
+        'admin': 'admin-dashboard.html'
+      };
+      
+      const route = roleRoutes[role.toLowerCase()];
+      if (route) {
+        window.location.href = route;
+      } else {
+        console.error('Unknown role:', role);
+        alert('Unknown user role. Please contact support.');
+      }
+    }
+
+    function displayError(fieldId, errorMessage) {
+      const errorElement = document.getElementById(fieldId);
+      const inputElement = document.getElementById(fieldId.replace('Error', ''));
+      
+      if (errorElement) {
+        errorElement.textContent = errorMessage;
+      }
+      
+      if (inputElement) {
+        inputElement.classList.add('error');
+      }
+    }
+
+    function clearErrors() {
+      const errorElements = document.querySelectorAll('.auth-form-error');
+      const inputElements = document.querySelectorAll('.auth-form-input');
+      
+      errorElements.forEach(el => el.textContent = '');
+      inputElements.forEach(el => el.classList.remove('error'));
+    }
+
+    const loginForm = document.getElementById('loginForm');
+    const emailError = document.getElementById('emailError');
+    const passwordError = document.getElementById('passwordError');
+    const emailInput = document.getElementById('loginEmail');
+    const passwordInput = document.getElementById('loginPassword');
+    const submitButton = loginForm?.querySelector('button[type="submit"]');
+
+    if (loginForm) {
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        clearErrors();
+
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = 'Signing in...';
+        }
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: emailInput.value.trim(),
+              password: passwordInput.value
+            })
+          });
+
+          let data;
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+          } else {
+            const text = await response.text();
+            throw new Error(text || `Server returned status ${response.status}`);
+          }
+
+          if (!response.ok) {
+            if (data.errors) {
+              if (data.errors.email) {
+                displayError('emailError', data.errors.email);
+              }
+              if (data.errors.password) {
+                displayError('passwordError', data.errors.password);
+              }
+              if (data.message && !data.errors.email && !data.errors.password) {
+                displayError('emailError', data.message);
+              }
+            } else if (data.message) {
+              displayError('emailError', data.message);
+            } else {
+              displayError('emailError', 'Login failed. Please try again.');
+            }
+            
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = 'Sign In';
+            }
+            return;
+          }
+
+          if (data.token) {
+            localStorage.setItem('token', data.token);
+            
+            let userRole = data.role;
+            
+            if (!userRole && data.token) {
+              const decodedToken = decodeJWT(data.token);
+              if (decodedToken) {
+                userRole = decodedToken.role || decodedToken.userRole;
+              }
+            }
+            
+            if (data.user) {
+              const userWithRole = {
+                id: data.user.id,
+                name: data.user.name,
+                email: data.user.email,
+                role: data.role
+              };
+              localStorage.setItem('user', JSON.stringify(userWithRole));
+            }
+            
+            if (userRole) {
+              redirectByRole(userRole);
+            } else {
+              console.error('No role found in response');
+              alert('Login successful, but role information is missing. Redirecting to default dashboard.');
+              window.location.href = 'student-dashboard.html';
+            }
+          } else {
+            throw new Error('No token received from server');
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          
+          let errorMessage = 'Network error. Please check your connection and try again.';
+          
+          if (error.message) {
+            if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+              errorMessage = 'Cannot connect to server. Please ensure the backend server is running and the API URL is correct.';
+            } else if (error.message.includes('CORS')) {
+              errorMessage = 'CORS error. Please check backend CORS configuration.';
+            } else {
+              errorMessage = error.message;
+            }
+          }
+          
+          displayError('emailError', errorMessage);
+          
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = 'Sign In';
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
+

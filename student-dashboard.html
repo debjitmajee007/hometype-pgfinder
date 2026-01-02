@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - PG Finder</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="styles/design-system.css">
+  
+  <!-- Auth Utility -->
+  <script src="js/auth.js"></script>
+  <link rel="icon" href="/favicon.ico">
+  
+  <style>
+    /* Dashboard Specific Styles */
+    .dashboard-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--neutral-50);
+    }
+
+    /* Top Navbar */
+    .dashboard-navbar {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--neutral-200);
+      padding: var(--spacing-4) var(--spacing-4);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dashboard-navbar-container {
+      max-width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--spacing-4);
+    }
+
+    .dashboard-logo {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--primary-600);
+      text-decoration: none;
+    }
+
+    .dashboard-logo-icon {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+      border-radius: var(--radius-md);
+      color: #ffffff;
+      font-size: var(--font-size-lg);
+    }
+
+    .dashboard-nav-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+    }
+
+    .dashboard-user {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      padding: var(--spacing-2) var(--spacing-3);
+      border-radius: var(--radius-md);
+      transition: background-color var(--transition-fast);
+      cursor: pointer;
+    }
+
+    .dashboard-user:hover {
+      background-color: var(--neutral-100);
+    }
+
+    .dashboard-user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: var(--font-weight-semibold);
+      font-size: var(--font-size-sm);
+    }
+
+    .dashboard-user-name {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      color: var(--neutral-700);
+    }
+
+    /* Main Layout */
+    .dashboard-main {
+      display: flex;
+      flex: 1;
+      gap: var(--spacing-6);
+      padding: var(--spacing-6) var(--spacing-4);
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Filter Sidebar */
+    .dashboard-sidebar {
+      width: 320px;
+      flex-shrink: 0;
+    }
+
+    .dashboard-filter-panel {
+      background-color: #ffffff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-200);
+      padding: var(--spacing-5);
+      position: sticky;
+      top: calc(var(--spacing-4) * 2 + 60px);
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+    }
+
+    .dashboard-filter-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-5);
+      padding-bottom: var(--spacing-4);
+      border-bottom: 1px solid var(--neutral-200);
+    }
+
+    .dashboard-filter-title {
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
+      color: var(--neutral-900);
+      margin-bottom: 0;
+    }
+
+    .dashboard-filter-reset {
+      font-size: var(--font-size-sm);
+      color: var(--primary-600);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: var(--spacing-1) var(--spacing-2);
+      border-radius: var(--radius-sm);
+      transition: background-color var(--transition-fast);
+    }
+
+    .dashboard-filter-reset:hover {
+      background-color: var(--primary-50);
+    }
+
+    .dashboard-filter-section {
+      margin-bottom: var(--spacing-6);
+    }
+
+    .dashboard-filter-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .dashboard-filter-section-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--neutral-700);
+      margin-bottom: var(--spacing-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Price Range Slider */
+    .price-range-container {
+      margin-top: var(--spacing-4);
+    }
+
+    .price-range-slider {
+      width: 100%;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--neutral-200);
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .price-range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-full);
+      background: var(--primary-600);
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+    }
+
+    .price-range-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-full);
+      background: var(--primary-600);
+      cursor: pointer;
+      border: none;
+      box-shadow: var(--shadow-md);
+    }
+
+    .price-range-values {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--spacing-2);
+      font-size: var(--font-size-sm);
+      color: var(--neutral-600);
+    }
+
+    /* Distance Dropdown */
+    .distance-select {
+      width: 100%;
+      padding: var(--spacing-3) var(--spacing-4);
+      font-size: var(--font-size-base);
+      font-family: var(--font-family);
+      color: var(--neutral-900);
+      background-color: #ffffff;
+      border: 1px solid var(--neutral-300);
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .distance-select:focus {
+      border-color: var(--primary-500);
+      box-shadow: 0 0 0 3px var(--primary-100);
+    }
+
+    /* Facilities Checkboxes */
+    .facilities-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-3);
+    }
+
+    .facility-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+      padding: var(--spacing-2);
+      border-radius: var(--radius-md);
+      transition: background-color var(--transition-fast);
+    }
+
+    .facility-item:hover {
+      background-color: var(--neutral-50);
+    }
+
+    .facility-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-600);
+      font-size: var(--font-size-lg);
+    }
+
+    .facility-label {
+      flex: 1;
+      font-size: var(--font-size-base);
+      color: var(--neutral-700);
+      cursor: pointer;
+    }
+
+    /* Main Content Area */
+    .dashboard-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dashboard-content-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-6);
+      flex-wrap: wrap;
+      gap: var(--spacing-4);
+    }
+
+    .dashboard-content-title {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--neutral-900);
+      margin-bottom: 0;
+    }
+
+    .dashboard-results-count {
+      font-size: var(--font-size-base);
+      color: var(--neutral-600);
+    }
+
+    /* PG Cards Grid */
+    .pg-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--spacing-6);
+    }
+
+    @media (max-width: 768px) {
+      .pg-cards-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* PG Card */
+    .pg-card {
+      background-color: #ffffff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--neutral-200);
+      overflow: hidden;
+      transition: all var(--transition-base);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pg-card:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .pg-card-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, var(--primary-100), var(--primary-200));
+    }
+
+    .pg-card-body {
+      padding: var(--spacing-5);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pg-card-header {
+      margin-bottom: var(--spacing-4);
+    }
+
+    .pg-card-name {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-semibold);
+      color: var(--neutral-900);
+      margin-bottom: var(--spacing-2);
+    }
+
+    .pg-card-location {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-2);
+      font-size: var(--font-size-sm);
+      color: var(--neutral-600);
+      margin-bottom: var(--spacing-3);
+    }
+
+    .pg-card-location-icon {
+      width: 16px;
+      height: 16px;
+      color: var(--neutral-400);
+    }
+
+    .pg-card-details {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-4);
+      padding-bottom: var(--spacing-4);
+      border-bottom: 1px solid var(--neutral-200);
+    }
+
+    .pg-card-rent {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .pg-card-rent-amount {
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--primary-600);
+      line-height: 1;
+    }
+
+    .pg-card-rent-period {
+      font-size: var(--font-size-xs);
+      color: var(--neutral-500);
+      margin-top: var(--spacing-1);
+    }
+
+    .pg-card-distance {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-1);
+      font-size: var(--font-size-sm);
+      color: var(--neutral-600);
+      background-color: var(--neutral-100);
+      padding: var(--spacing-1) var(--spacing-2);
+      border-radius: var(--radius-sm);
+    }
+
+    .pg-card-facilities {
+      margin-bottom: var(--spacing-4);
+    }
+
+    .pg-card-facilities-title {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+      color: var(--neutral-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: var(--spacing-2);
+    }
+
+    .pg-card-facilities-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-2);
+    }
+
+    .pg-card-facility-badge {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-1);
+      padding: var(--spacing-1) var(--spacing-2);
+      background-color: var(--primary-50);
+      color: var(--primary-700);
+      border-radius: var(--radius-sm);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-medium);
+    }
+
+    .pg-card-facility-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    .pg-card-footer {
+      margin-top: auto;
+      padding-top: var(--spacing-4);
+    }
+
+    .pg-card-button {
+      width: 100%;
+    }
+
+    /* Mobile Filter Toggle */
+    .dashboard-filter-toggle {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: var(--spacing-4);
+      background-color: #ffffff;
+      border: 1px solid var(--neutral-300);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      margin-bottom: var(--spacing-4);
+      font-weight: var(--font-weight-medium);
+      color: var(--neutral-700);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .dashboard-filter-toggle-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 1024px) {
+      .dashboard-sidebar {
+        width: 280px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-main {
+        flex-direction: column;
+        padding: var(--spacing-4);
+      }
+
+      .dashboard-sidebar {
+        width: 100%;
+      }
+
+      .dashboard-filter-panel {
+        position: static;
+        max-height: none;
+      }
+
+      .dashboard-filter-toggle {
+        display: flex;
+      }
+
+      .dashboard-filter-panel.hidden-mobile {
+        display: none;
+      }
+
+      .dashboard-user-name {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Top Navbar -->
+    <nav class="dashboard-navbar">
+      <div class="dashboard-navbar-container">
+        <a href="landing.html" class="dashboard-logo">
+          <div class="dashboard-logo-icon">🏠</div>
+          <span>PG Finder</span>
+        </a>
+        
+        <div class="dashboard-nav-actions">
+          <div class="dashboard-user" id="userMenu" style="position: relative;">
+            <div class="dashboard-user-avatar" id="userAvatar">JD</div>
+            <span class="dashboard-user-name" id="userName">John Doe</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="logout()" style="margin-left: var(--spacing-2);">Logout</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Layout -->
+    <div class="dashboard-main">
+      <!-- Filter Sidebar -->
+      <aside class="dashboard-sidebar">
+        <button class="dashboard-filter-toggle" id="filterToggle">
+          <span>Filters</span>
+          <svg class="dashboard-filter-toggle-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+          </svg>
+        </button>
+
+        <div class="dashboard-filter-panel hidden-mobile" id="filterPanel">
+          <div class="dashboard-filter-header">
+            <h2 class="dashboard-filter-title">Filters</h2>
+            <button class="dashboard-filter-reset" id="resetFilters">Reset</button>
+          </div>
+
+          <!-- Price Range -->
+          <div class="dashboard-filter-section">
+            <h3 class="dashboard-filter-section-title">Price Range</h3>
+            <div class="price-range-container">
+              <input 
+                type="range" 
+                id="priceRange" 
+                class="price-range-slider" 
+                min="3000" 
+                max="25000" 
+                step="1000" 
+                value="15000"
+              >
+              <div class="price-range-values">
+                <span id="minPrice">₹1,000</span>
+                <span id="maxPrice">₹10,000</span>
+              </div>
+              <div style="text-align: center; margin-top: var(--spacing-2); font-size: var(--font-size-sm); color: var(--primary-600); font-weight: var(--font-weight-medium);">
+                Selected: <span id="selectedPrice">₹4,000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Distance -->
+          <div class="dashboard-filter-section">
+            <h3 class="dashboard-filter-section-title">Distance from College</h3>
+            <select id="distanceSelect" class="distance-select">
+              <option value="">Any Distance</option>
+              <option value="0-1">Less than 1 km</option>
+              <option value="1-2">1 - 2 km</option>
+              <option value="2-5">2 - 5 km</option>
+              <option value="5-10">5 - 10 km</option>
+              <option value="10+">More than 10 km</option>
+            </select>
+          </div>
+
+          <!-- Facilities -->
+          <div class="dashboard-filter-section">
+            <h3 class="dashboard-filter-section-title">Facilities</h3>
+            <div class="facilities-list">
+              <div class="facility-item">
+                <div class="facility-icon">📶</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="wifi" name="facilities">
+                  <span>WiFi</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">❄️</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="ac" name="facilities">
+                  <span>Air Conditioning</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">🧺</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="laundry" name="facilities">
+                  <span>Laundry</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">🚗</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="parking" name="facilities">
+                  <span>Parking</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">🍽️</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="food" name="facilities">
+                  <span>Food Included</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">🔒</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="security" name="facilities">
+                  <span>24/7 Security</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">💧</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="water" name="facilities">
+                  <span>24/7 Water</span>
+                </label>
+              </div>
+              <div class="facility-item">
+                <div class="facility-icon">📺</div>
+                <label class="facility-label">
+                  <input type="checkbox" class="form-checkbox" value="tv" name="facilities">
+                  <span>TV</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="dashboard-content">
+        <div class="dashboard-content-header">
+          <div>
+            <h1 class="dashboard-content-title">Available PGs</h1>
+            <p class="dashboard-results-count">Showing <strong>12</strong> results</p>
+          </div>
+        </div>
+
+        <!-- PG Cards Grid (dynamic) -->
+        <div class="pg-cards-grid" id="pgCardsGrid">
+          <div id="pgLoading" style="grid-column: 1/-1; text-align:center; padding: var(--spacing-6);">
+            <div style="display:inline-flex; align-items:center; gap:12px;">
+              <svg width="20" height="20" viewBox="0 0 38 38" xmlns="http://www.w3.org/2000/svg" stroke="#2563eb"><g fill="none" fill-rule="evenodd"><g transform="translate(1 1)" stroke-width="2"><circle stroke-opacity=".3" cx="18" cy="18" r="18"></circle><path d="M36 18c0-9.94-8.06-18-18-18"><animateTransform attributeName="transform" type="rotate" from="0 18 18" to="360 18 18" dur="1s" repeatCount="indefinite"/></path></g></g></svg>
+              <strong>Loading PG listings…</strong>
+            </div>
+          </div>
+          <div id="pgEmpty" style="display:none; grid-column:1/-1; text-align:center; padding: var(--spacing-8); color:var(--neutral-600);">
+            <h3 style="margin:0 0 var(--spacing-2);">No approved PG listings found</h3>
+            <p style="margin:0;">Try adjusting filters or check back later.</p>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Filter Toggle (Mobile)
+    const filterToggle = document.getElementById('filterToggle');
+    const filterPanel = document.getElementById('filterPanel');
+
+    if (filterToggle && filterPanel) {
+      filterToggle.addEventListener('click', () => {
+        filterPanel.classList.toggle('hidden-mobile');
+      });
+    }
+
+    // Price Range Slider
+   // ===== PRICE RANGE SLIDER =====
+const priceRange = document.getElementById('priceRange');
+const selectedPrice = document.getElementById('selectedPrice');
+const minPrice = document.getElementById('minPrice');
+const maxPrice = document.getElementById('maxPrice');
+
+if (priceRange && selectedPrice) {
+  const formatPrice = (value) => {
+    return parseInt(value).toLocaleString('en-IN');
+  };
+
+  // Debounced fetch on price change
+  const debouncedFetch = debounce(() => {
+    if (typeof fetchAndRenderPGs === 'function') {
+      console.log('Price filter changed, refetching PGs...');
+      fetchAndRenderPGs();
+    }
+  }, 300);
+
+  priceRange.addEventListener('input', (e) => {
+    selectedPrice.textContent = formatPrice(e.target.value);
+    debouncedFetch();  // ← ADDED: Trigger refetch
+  });
+
+  // Initialize display
+  if (minPrice && maxPrice) {
+    minPrice.textContent = formatPrice(priceRange.min);
+    maxPrice.textContent = formatPrice(priceRange.max);
+    selectedPrice.textContent = formatPrice(priceRange.value);
+  }
+}
+
+
+ // ===== RESET FILTERS BUTTON =====
+const resetFilters = document.getElementById('resetFilters');
+if (resetFilters) {
+  resetFilters.addEventListener('click', () => {
+    console.log('Resetting all filters...');
+
+    // Reset price range
+    if (priceRange) {
+      priceRange.value = priceRange.max / 2;
+      if (selectedPrice) {
+        selectedPrice.textContent = parseInt(priceRange.value).toLocaleString('en-IN');
+      }
+    }
+
+    // Reset distance
+    const distanceSelect = document.getElementById('distanceSelect');
+    if (distanceSelect) {
+      distanceSelect.value = '';
+    }
+
+    // Reset facilities
+    const facilityCheckboxes = document.querySelectorAll('input[name="facilities"]');
+    facilityCheckboxes.forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+
+    // ← ADDED: Refetch after reset
+    if (typeof fetchAndRenderPGs === 'function') {
+      console.log('Fetching all PGs after reset...');
+      fetchAndRenderPGs(true);
+    }
+  });
+}
+
+
+    // Filter change handlers (for future backend integration)
+    const distanceSelect = document.getElementById('distanceSelect');
+    if (distanceSelect) {
+      // Will trigger a refetch when the distance filter changes
+      distanceSelect.addEventListener('change', debounce(() => {
+        fetchAndRenderPGs();
+      }, 300));
+    }
+
+   // ===== FACILITIES CHECKBOXES =====
+const facilityCheckboxes = document.querySelectorAll('input[name="facilities"]');
+facilityCheckboxes.forEach((checkbox) => {
+  checkbox.addEventListener('change', (e) => {
+    console.log('Facility filter changed:', e.target.value, 'Checked:', e.target.checked);
+    
+    // Trigger refetch when any facility is checked/unchecked
+    if (typeof fetchAndRenderPGs === 'function') {
+      console.log('Refetching PGs due to facility filter change...');
+      debounce(fetchAndRenderPGs, 300)();
+    }
+  });
+});
+
+
+    if (priceRange) {
+      // Trigger refetch while the user adjusts the slider (debounced)
+      priceRange.addEventListener('input', debounce(() => {
+        fetchAndRenderPGs();
+      }, 300));
+    }
+
+    // Load user data and display in navbar
+    function loadUserData() {
+      const user = getUser();
+      const token = getToken();
+      
+      if (user) {
+        const userNameEl = document.getElementById('userName');
+        const userAvatarEl = document.getElementById('userAvatar');
+        
+        if (userNameEl && user.name) {
+          userNameEl.textContent = user.name;
+        }
+        
+        if (userAvatarEl && user.name) {
+          // Get initials from name
+          const initials = user.name
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .toUpperCase()
+            .slice(0, 2);
+          userAvatarEl.textContent = initials;
+        }
+      }
+    }
+
+    // Route Protection - Student Dashboard
+    if (initRouteProtection('student')) {
+      loadUserData();
+      // After loading user data, fetch and render approved PG listings
+      fetchAndRenderPGs();
+    }
+
+    // Debounce helper
+    function debounce(fn, wait) {
+      let t;
+      return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
+    // Fetch approved PGs and render cards
+    // Data flow:
+    // 1. On page load, frontend calls GET /api/pgs.
+    // 2. Backend returns all PGs from the shared in-memory `pgs` array.
+    // 3. Frontend filters for `status: 'approved'` and renders the cards.
+    async function fetchAndRenderPGs() {
+      const grid = document.getElementById('pgCardsGrid');
+      const loading = document.getElementById('pgLoading');
+      const empty = document.getElementById('pgEmpty');
+      const resultsCountEl = document.querySelector('.dashboard-results-count strong');
+
+      if (!grid || !loading || !empty) return;
+
+      // Show loading
+      loading.style.display = 'block';
+      empty.style.display = 'none';
+
+      try {
+        // Build query params from active filters
+        const params = new URLSearchParams();
+        try {
+          const priceVal = Number(priceRange && priceRange.value ? priceRange.value : '');
+          if (!Number.isNaN(priceVal) && priceVal > 0) params.set('price', String(priceVal));
+        } catch (e) {}
+
+        try {
+          const distVal = (document.getElementById('distanceSelect') || {}).value;
+          if (distVal) params.set('distance', distVal);
+        } catch (e) {}
+
+        const url = `${API_BASE_URL}/pgs` + (params.toString() ? `?${params.toString()}` : '');
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`Server returned ${res.status}`);
+        const data = await res.json();
+
+        const listings = Array.isArray(data.listings) ? data.listings : [];
+
+        // Filter to approved as a safety measure
+        const approved = listings.filter(l => l.status && l.status.toLowerCase() === 'approved');
+
+        // Clear previous cards (keep loading/empty elements)
+        Array.from(grid.children).forEach(child => {
+          if (child.id !== 'pgLoading' && child.id !== 'pgEmpty') grid.removeChild(child);
+        });
+
+        if (approved.length === 0) {
+          empty.style.display = 'block';
+          resultsCountEl && (resultsCountEl.textContent = '0');
+          return;
+        }
+
+        // Render cards
+        approved.forEach(listing => {
+          const card = document.createElement('div');
+          card.className = 'pg-card';
+          card.innerHTML = `
+            <img src="https://via.placeholder.com/400x200?text=${encodeURIComponent(listing.name)}" alt="${escapeHtml(listing.name)}" class="pg-card-image">
+            <div class="pg-card-body">
+              <div class="pg-card-header">
+                <h3 class="pg-card-name">${escapeHtml(listing.name)}</h3>
+                <div class="pg-card-location">
+                  <svg class="pg-card-location-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  <span>${escapeHtml(listing.college || listing.city || listing.address || 'Location')}</span>
+                </div>
+              </div>
+              <div class="pg-card-details">
+                <div class="pg-card-rent">
+                  <span class="pg-card-rent-amount">₹${Number(listing.rent || 0).toLocaleString('en-IN')}</span>
+                  <span class="pg-card-rent-period">per month</span>
+                </div>
+                <div class="pg-card-distance">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  ${escapeHtml((listing.distance || 0) + ' km')}
+                </div>
+              </div>
+              <div class="pg-card-facilities">
+                <div class="pg-card-facilities-title">Facilities</div>
+                <div class="pg-card-facilities-list">
+                  ${Array.isArray(listing.facilities) && listing.facilities.length ? listing.facilities.map(f => `<span class="pg-card-facility-badge"><span class="pg-card-facility-icon">${escapeHtml(emojiForFacility(f))}</span>${escapeHtml(capitalize(f))}</span>`).join('') : '<span style="color:var(--neutral-500); font-size:var(--font-size-sm);">No facilities listed</span>'}
+                </div>
+              </div>
+              <div class="pg-card-footer">
+                <a href="pg-details.html?id=${encodeURIComponent(listing.id)}" class="btn btn-primary pg-card-button" style="text-decoration: none; display: block; text-align: center;">View Details</a>
+              </div>
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        resultsCountEl && (resultsCountEl.textContent = String(approved.length));
+      } catch (error) {
+        console.error('Failed to load PG listings:', error);
+        empty.style.display = 'block';
+        empty.querySelector('h3') && (empty.querySelector('h3').textContent = 'Unable to load listings');
+      } finally {
+        loading.style.display = 'none';
+      }
+    }
+
+    // Small helpers
+    function capitalize(s) {
+      if (!s) return '';
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    function escapeHtml(str) {
+      if (str === undefined || str === null) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    function emojiForFacility(key) {
+      const map = {
+        wifi: '📶',
+        ac: '❄️',
+        laundry: '🧺',
+        parking: '🚗',
+        food: '🍽️',
+        security: '🔒',
+        water: '💧',
+        tv: '📺'
+      };
+      return map[key] || '•';
+    }
+  </script>
+</body>
+</html>
+
